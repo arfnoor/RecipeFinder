@@ -19,12 +19,14 @@ data class Ingredient(
     val id: Int,
     val name: String,
     val quantity: Int,
-    val unit: Unit
+    val unit: Unit,
+    val note: String = ""
 )
 
 // Represents a step in the preparation of a recipe.
 data class Step(
     val index: Int,
+    val title: String,
     val description: String,
     val imageUrl: String = ""
 )

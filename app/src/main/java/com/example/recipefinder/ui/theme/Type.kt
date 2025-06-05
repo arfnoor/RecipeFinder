@@ -15,11 +15,20 @@ val Typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp,
     ),
+
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
         fontSize = 75.sp,
-        lineHeight = 40.sp,
+        lineHeight = 80.sp,
+        letterSpacing = 0.sp
+    ),
+
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 45.sp,
+        lineHeight = 47.sp,
         letterSpacing = 0.sp
     ),
 
