@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "546965077359",
+    "project_id": "recipefinder-willowtree",
+    "storage_bucket": "recipefinder-willowtree.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546965077359:android:56d26785cb9cda1d66bc9a",
+        "android_client_info": {
+          "package_name": "com.example.recipefinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8yZa9aI6fIB7Nz6Yjxvp_JW7ATzpQb_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

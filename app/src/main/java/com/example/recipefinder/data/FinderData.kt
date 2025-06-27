@@ -11,7 +11,8 @@ data class Recipe(
     val imageUrl: String = "",
     val ingredients: List<Ingredient> = emptyList(),
     val style: String = "",
-    val tags: List<Tag> = emptyList()
+    val tags: List<Tag> = emptyList(),
+    val owner: String = "Anonymous"
 )
 
 // Represents an ingredient in a recipe.
