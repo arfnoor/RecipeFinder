@@ -55,7 +55,7 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.sp
     ),
-    /* Other default text styles to override
+
     labelSmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
@@ -63,5 +63,5 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
-    */
+
 )

@@ -37,6 +37,7 @@ import com.example.recipefinder.database.readRecipesFromDatabase
 import com.example.recipefinder.database.updateRecipeInDatabase
 import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
+import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
 import com.example.recipefinder.ui.home.HomeScreen
 import com.example.recipefinder.ui.market.MarketScreen
 import com.example.recipefinder.ui.recipes.SingleRecipeScreen
@@ -142,9 +143,9 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
             modifier = Modifier.fillMaxSize(),
 
             floatingActionButton = {
-                if(navController.currentDestination?.route != Market.route) {
+                if(navController.currentDestination?.route != CreateRecipe.route) {
                     FloatingActionButton(
-                        onClick = { navController.navigateSingleTopTo(Market.route) },
+                        onClick = { navController.navigateSingleTopTo(CreateRecipe.route) },
                         containerColor = Primary,
                         contentColor = Color.White,
                         modifier = Modifier
@@ -190,6 +191,17 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                 }
                 composable(route = Settings.route) {
                     SettingsScreen()
+                }
+                composable(route = CreateRecipe.route) {
+                    CreateRecipeScreen(
+                        onCreate = { recipe ->
+                            // Handle recipe creation, e.g., save to database
+                            writeRecipeToDatabase(database, recipe)
+                            // Navigate to the newly created recipe's detail screen
+                            navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
+                        }
+
+                    )
                 }
                 composable(
                     route = SingleRecipe.routeWithArgs ,

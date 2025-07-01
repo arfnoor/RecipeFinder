@@ -2,6 +2,7 @@ package com.example.recipefinder
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
@@ -43,6 +44,11 @@ object Market : RecipeDestination {
 object Settings : RecipeDestination {
     override val icon = Icons.Filled.Settings
     override val route = "settings"
+}
+
+object CreateRecipe : RecipeDestination {
+    override val icon = Icons.Filled.Add // Placeholder icon, not used in navigation
+    override val route = "create_recipe"
 }
 
 object SingleRecipe : RecipeDestination {
