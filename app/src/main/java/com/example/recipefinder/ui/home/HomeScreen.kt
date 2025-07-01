@@ -161,7 +161,7 @@ fun HomeScreen(
                 textAlign = TextAlign.Center,
             )
             Spacer(
-                modifier = Modifier.height(150.dp)
+                modifier = Modifier.height(50.dp)
             )
             Text(
                 text = "Welcome to Recipedia",

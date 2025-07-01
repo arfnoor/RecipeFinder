@@ -26,9 +26,9 @@ data class Ingredient(
 
 // Represents a step in the preparation of a recipe.
 data class Step(
-    val index: Int,
-    val title: String,
-    val description: String,
+    val index: Int = 0,
+    val title: String = "Something went wrong",
+    val description: String = "",
     val imageUrl: String = ""
 )
 

@@ -5,34 +5,32 @@ import com.example.recipefinder.data.Recipe
 import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 
-val database = Firebase.database.reference
 
 data class SafeRecipe(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val preparationTime: Int,
+    val id: Int = 0,
+    val title: String = "Something went wrong",
+    val description: String = "",
+    val preparationTime: Int = 0,
     val steps : List<Step> = emptyList(),
     val imageUrl: String = "",
     val ingredients: List<SafeIngredient> = emptyList(),
     val style: String = "",
     val tags: List<SafeTag> = emptyList(),
-    val owner: String
+    val owner: String = "Anonymous"
 )
 
 data class SafeIngredient(
-    val id: Int,
-    val name: String,
-    val quantity: Int,
-    val unit: String,
+    val id: Int = 0,
+    val name: String = "Something went wrong",
+    val quantity: Int = 0,
+    val unit: String = "",
     val note: String = ""
 )
 
 data class SafeTag(
-    val tag: String
+    val tag: String = ""
 )
 
 /**
@@ -92,24 +90,27 @@ fun recipeConverter(recipe: Recipe): SafeRecipe
     )
 }
 
-fun writeRecipeToDatabase(recipe: Recipe) {
-    database.child("recipes").child(recipe.id.toString()).setValue(recipeConverter(recipe))
-//        .addOnSuccessListener {
-//            // Write was successful
-//            println("Recipe written successfully: ${recipe.title}")
-//        }
-//        .addOnFailureListener { exception ->
-//            // Write failed
-//            println("Error writing recipe: ${exception.message}")
-//        }
+fun writeRecipeToDatabase(db: FirebaseFirestore, recipe: Recipe) {
+    db.collection("RECIPES").document(recipe.id.toString()).set(recipeConverter(recipe))
+        .addOnSuccessListener {
+            // Write was successful
+            println("Recipe written successfully: ${recipe.title}")
+        }
+        .addOnFailureListener { exception ->
+            // Write failed
+            println("Error writing recipe: ${exception.message}")
+        }
 }
 
-fun readRecipesFromDatabase(onSuccess: (List<Recipe>) -> Unit, onFailure: (Exception) -> Unit) {
-    database.child("recipes").get()
+
+fun readRecipesFromDatabase(db: FirebaseFirestore, onSuccess: (List<Recipe>) -> kotlin.Unit, onFailure: (Exception) -> kotlin.Unit) {
+    db.collection("RECIPES").get()
         .addOnSuccessListener { dataSnapshot ->
             // Read was successful
-            val recipes = dataSnapshot.children.mapNotNull { it.getValue(SafeRecipe::class.java)
-                ?.let { it1 -> safeRecipeConverter(it1) } }
+            val recipes = dataSnapshot.documents.mapNotNull { document ->
+                val safeRecipe = document.toObject(SafeRecipe::class.java)
+                safeRecipe?.let { safeRecipeConverter(it) }
+            }
             onSuccess(recipes)
         }
         .addOnFailureListener { exception ->
@@ -118,8 +119,8 @@ fun readRecipesFromDatabase(onSuccess: (List<Recipe>) -> Unit, onFailure: (Excep
         }
 }
 
-fun updateRecipeInDatabase(recipe: Recipe) {
-    database.child("recipes").child(recipe.id.toString()).setValue(recipeConverter(recipe))
+fun updateRecipeInDatabase(db: FirebaseFirestore, recipe: Recipe) {
+    db.collection("RECIPES").document(recipe.id.toString()).set(recipeConverter(recipe))
 //        .addOnSuccessListener {
 //            // Update was successful
 //            println("Recipe updated successfully: ${recipe.title}")

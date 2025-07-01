@@ -1,15 +1,26 @@
 package com.example.recipefinder
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
@@ -18,9 +29,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
+import com.example.recipefinder.data.RecipeViewModel
 import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
+import com.example.recipefinder.database.readRecipesFromDatabase
+import com.example.recipefinder.database.updateRecipeInDatabase
+import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.home.HomeScreen
 import com.example.recipefinder.ui.market.MarketScreen
@@ -28,7 +43,11 @@ import com.example.recipefinder.ui.recipes.SingleRecipeScreen
 import com.example.recipefinder.ui.saved.SavedScreen
 import com.example.recipefinder.ui.search.SearchScreen
 import com.example.recipefinder.ui.settings.SettingsScreen
+import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 fun NavHostController.navigateSingleTopTo(route: String) =
     this.navigate(route) {
@@ -44,9 +63,10 @@ fun NavHostController.navigateSingleTopTo(route: String) =
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val db = Firebase.firestore
         enableEdgeToEdge()
         setContent {
-            RecipeFinderApp()
+            RecipeFinderApp(db)
         }
     }
 }
@@ -75,8 +95,30 @@ val example: MutableList<Recipe>  = mutableListOf(
 
 )
 
+val recipeViewModel = RecipeViewModel()
+val recipes = recipeViewModel.recipes
+private fun getDatabaseRecipes(foundRecipes: List<Recipe>) {
+    recipeViewModel.setRecipes(foundRecipes)
+}
+
+fun fetchRecipes(database: FirebaseFirestore) {
+    // Simulate fetching recipes from a database
+    readRecipesFromDatabase(db = database,
+        { foundRecipes ->
+            getDatabaseRecipes(
+                foundRecipes
+            )
+        },
+        {
+            // Handle error case, e.g., show a message to the user
+            println("Error fetching recipes: $it")
+        }
+    )
+}
+
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun RecipeFinderApp() {
+fun RecipeFinderApp(database: FirebaseFirestore) {
     RecipeFinderTheme {
         // Get the NavController for navigation and the current backstack entry
         val navController = rememberNavController()
@@ -90,6 +132,7 @@ fun RecipeFinderApp() {
                 RecipeFinderTabRow(
                     allScreens = recipeDestinations,
                     onTabSelected = { destination ->
+                        fetchRecipes(database)
                         // Navigate to the selected destination
                         navController.navigateSingleTopTo(destination.route)
                     },
@@ -98,6 +141,22 @@ fun RecipeFinderApp() {
             },
             modifier = Modifier.fillMaxSize(),
 
+            floatingActionButton = {
+                if(navController.currentDestination?.route != Market.route) {
+                    FloatingActionButton(
+                        onClick = { navController.navigateSingleTopTo(Market.route) },
+                        containerColor = Primary,
+                        contentColor = Color.White,
+                        modifier = Modifier
+                            .padding(end = (LocalConfiguration.current.screenWidthDp.dp / 2 - 44.dp))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add"
+                        )
+                    }
+                }
+            }
         )
         { innerPadding ->
             // Main content of the app goes here
@@ -112,19 +171,19 @@ fun RecipeFinderApp() {
                     )
                 }
                 composable(route = Saved.route) {
-                    SavedScreen(example, onRecipeClick = {recipe ->
+                    SavedScreen(recipes, onRecipeClick = {recipe ->
                         // Handle recipe click, navigate to a detailed view
                         navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
                     })
                 }
                 composable(route = Search.route) {
-                    SearchScreen(example, onRecipeClick = {recipe ->
+                    SearchScreen(recipes, onRecipeClick = {recipe ->
                     // Handle recipe click, navigate to a detailed view
                     navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
                     })
                 }
                 composable(route = Market.route) {
-                    MarketScreen(example, onRecipeClick = { recipe ->
+                    MarketScreen(recipes, onRecipeClick = { recipe ->
                         // Handle recipe click, navigate to a detailed view
                         navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
                     })
@@ -138,7 +197,7 @@ fun RecipeFinderApp() {
 
                 ) { navBackStackEntry ->
                     val recipe = navBackStackEntry.arguments?.getInt(SingleRecipe.recipeIdArg)?.let { recipeId ->
-                        example.firstOrNull { it.id == recipeId }
+                        recipes.firstOrNull { it.id == recipeId }
                     } ?: Recipe(0, "Unknown Recipe", "No description available", 0)
                     SingleRecipeScreen(recipe)
                 }
@@ -152,5 +211,5 @@ fun RecipeFinderApp() {
 @Preview(showBackground = true)
 @Composable
 fun RecipeFinderAppPreview() {
-    RecipeFinderApp()
+    RecipeFinderApp(database = Firebase.firestore)
 }
