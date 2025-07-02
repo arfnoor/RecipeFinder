@@ -1,31 +1,21 @@
 package com.example.recipefinder.ui.createrecipe
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.Composable
@@ -39,11 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
 import com.example.recipefinder.data.Step
@@ -52,7 +40,6 @@ import com.example.recipefinder.data.abbreviateUnit
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
 import com.example.recipefinder.ui.theme.Secondary
-import com.example.recipefinder.ui.theme.dialogFieldColors
 import com.example.recipefinder.ui.theme.inputFieldColors
 
 
@@ -63,7 +50,6 @@ fun CreateRecipeScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var ingredients by remember { mutableStateOf(listOf<Ingredient>()) }
-    var note by remember { mutableStateOf("") }
     var preparationTime by remember { mutableIntStateOf(0) }
     var steps by remember { mutableStateOf(listOf<Step>()) }
     var imageUrl by remember { mutableStateOf("") }
@@ -204,12 +190,12 @@ fun CreateRecipeScreen(
                     ingredients.forEach {
                         Box(
                             modifier = Modifier
-                            .padding(8.dp)
-                            .clickable {
-                                selectedIngredient = it
-                                showSelectedIngredientDialog = true
-                            }
-                            .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                .padding(8.dp)
+                                .clickable {
+                                    selectedIngredient = it
+                                    showSelectedIngredientDialog = true
+                                }
+                                .background(Color.White, shape = RoundedCornerShape(8.dp))
                         )
                         {
                             Text(
@@ -285,9 +271,102 @@ fun CreateRecipeScreen(
                             )
                     ),
                 )
+                var showStepDialog by remember { mutableStateOf(false) }
+                var selectedStep by remember { mutableStateOf<Step?>(null) }
+                var showSelectedStepDialog by remember { mutableStateOf(false) }
+                if (showStepDialog) {
+                    StepsInputDialog(
+                        onConfirm = { oldStep ->
+                            val step: Step = if (oldStep.index >= steps.size + 1) {
+                                oldStep.copy(index = steps.size + 1)
+                            } else{
+                                oldStep
+                            }
+                            steps = steps + step
+                            var i = step.index + 1
+                            val newSteps = steps.toMutableList()
+                            for(j in newSteps.indices){
+                                if (newSteps[j].index >= step.index && step != newSteps[j]) {
+                                    newSteps[j] = newSteps[j].copy(index = i)
+                                    i++
+                                }
+                            }
+                            newSteps.sortBy { it.index }
+                            steps = newSteps
+                            showStepDialog = false
+                        },
+                        onDismiss = { showStepDialog = false },
+                        assignedIndex = steps.size + 1,
+                    )
+                }
+                if (showSelectedStepDialog && selectedStep != null) {
+                    EditStepInputDialog(
+                        selectedStep!!,
+                        onConfirm = { oldStep ->
+                            val step: Step = if (oldStep.index >= steps.size) {
+                                oldStep.copy(index = steps.size)
+                            } else{
+                                oldStep
+                            }
+                            steps = steps - selectedStep!! + step
+                            var i = step.index + 1
+                            val newSteps = steps.toMutableList()
+                            for(j in newSteps.indices){
+                                if (newSteps[j].index >= step.index && step != newSteps[j]) {
+                                    newSteps[j] = newSteps[j].copy(index = i)
+                                    i++
+                                }
+                            }
+                            newSteps.sortBy { it.index }
+                            steps = newSteps
+                            showSelectedStepDialog = false
+                            selectedStep = null
+                        },
+                        onDismiss = { showSelectedStepDialog = false },
+                        onRemove = {
+                            steps = steps - selectedStep!!
+                            showSelectedStepDialog = false
+                            selectedStep = null
+                        }
+                    )
+                }
+                Column {
+                    steps.forEach {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable {
+                                    selectedStep = it
+                                    showSelectedStepDialog = true
+                                }
+                                .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                .fillMaxWidth()
+                        )
+                        {
+                            Column {
+                                Text(
+                                    text = "${it.index}. ${it.title}",
+                                    color = Secondary,
+                                    modifier = Modifier
+                                        .padding(8.dp),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = it.description,
+                                    color = Secondary,
+                                    modifier = Modifier
+                                        .padding(8.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
                 Button(
                     onClick = {
-
+                        showStepDialog = true
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -315,6 +394,9 @@ fun CreateRecipeScreen(
                                 ingredients = ingredients,
                                 steps = steps,
                                 preparationTime = preparationTime,
+                                imageUrl = imageUrl,
+                                style = style,
+                                tags = tags,
                             )
                         )
                     },
@@ -343,235 +425,6 @@ fun CreateRecipeScreen(
         }
     }
 
-}
-
-@Composable
-fun IngredientInputDialog(
-    onConfirm: (Ingredient) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-
-    androidx.compose.material3.AlertDialog(
-        containerColor = Secondary,
-        onDismissRequest = onDismiss,
-        title = { Text(color = Color.White, text = "Add Ingredient") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    colors = dialogFieldColors(),
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") }
-                )
-                Row (
-                    verticalAlignment = Alignment.CenterVertically,
-
-                ) {
-                    OutlinedTextField(
-                        colors = dialogFieldColors(),
-                        value = quantity,
-                        onValueChange = { quantity = it },
-                        label = { Text("Quantity") },
-                        modifier = Modifier.fillMaxWidth(.4f)
-                    )
-                    var expanded by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 8.dp, top = 8.dp)
-                            .height(56.dp)
-                            .background(Primary, shape = RoundedCornerShape(2.dp))
-                            .clickable { expanded = true },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (unit.isNotBlank()) unit else "Select unit \u25BC",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                        )
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier
-                                .fillMaxWidth(.3f)
-                        ) {
-                            com.example.recipefinder.data.Unit.entries.forEach { enumUnit ->
-                                DropdownMenuItem(
-                                    text = { Text(enumUnit.name.lowercase().replaceFirstChar(Char::titlecase), fontSize = 16.sp) },
-                                    onClick = {
-                                        unit = enumUnit.name
-                                        expanded = false
-                                    }
-                                )
-                            }
-
-                        }
-                    }
-                }
-                OutlinedTextField(
-                    colors = dialogFieldColors(),
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text("Note") }
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    contentColor = Color.White
-                ),
-                onClick = {
-                    if (name.isNotBlank() && quantity.isNotBlank() && unit.isNotBlank()) {
-                        onConfirm(Ingredient(0, name.lowercase().replaceFirstChar(Char::titlecase), quantity.toInt(), com.example.recipefinder.data.Unit.valueOf(unit.uppercase()), note))
-                    }
-                }
-            ) {
-                Text("Confirm")
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Primary
-                ),
-            ) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
-fun EditIngredientInputDialog(
-    ingredient: Ingredient,
-    onConfirm: (Ingredient) -> Unit,
-    onDismiss: () -> Unit,
-    onRemove: () -> Unit
-) {
-    val newName = remember { mutableStateOf(ingredient.name) }
-    val newQuantity = remember { mutableIntStateOf(ingredient.quantity) }
-    val newUnit = remember { mutableStateOf(ingredient.unit.name) }
-    val newNote = remember { mutableStateOf(ingredient.note) }
-
-    androidx.compose.material3.AlertDialog(
-        containerColor = Secondary,
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Ingredient", color = Color.White) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    colors = dialogFieldColors(),
-                    value = newName.value,
-                    onValueChange = { newName.value = it },
-                    label = { Text("Name") },
-                    placeholder = { Text(newName.value) },
-                )
-                Row (
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        colors = dialogFieldColors(),
-                        value = newQuantity.intValue.toString(),
-                        onValueChange = { value ->
-                            value.toIntOrNull()?.let { newQuantity.intValue = it }
-                        },
-                        label = { Text("Quantity") },
-                        placeholder = { Text(newQuantity.intValue.toString()) },
-                        modifier = Modifier.fillMaxWidth(.4f),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        )
-                    )
-                    var expanded by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 8.dp, top = 8.dp)
-                            .height(56.dp)
-                            .background(Primary, shape = RoundedCornerShape(2.dp))
-                            .clickable { expanded = true },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (newUnit.value.isNotBlank()) newUnit.value else "Select unit \u25BC",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        com.example.recipefinder.data.Unit.entries.forEach { enumUnit ->
-                            DropdownMenuItem(
-                                text = { Text(enumUnit.name.lowercase().replaceFirstChar(Char::titlecase)) },
-                                onClick = {
-                                    newUnit.value = enumUnit.name
-                                    expanded = false
-                                }
-                            )
-                        }
-
-                    }
-                }
-                OutlinedTextField(
-                    colors = dialogFieldColors(),
-                    value = newNote.value,
-                    onValueChange = { newNote.value = it },
-                    label = { Text("Note") },
-                    placeholder = { Text(newNote.value) },
-                )
-                Button(
-                    onClick = onRemove,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
-                        contentColor = Color.White
-                    ),
-                ) {
-                    Text(
-                        text = "Remove Ingredient",
-                        color = Color.White,
-                        modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 8.dp)
-                    )
-                }
-            }
-
-        },
-        confirmButton = {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    contentColor = Color.White
-                ),
-                onClick = {onConfirm(Ingredient(ingredient.id, newName.value.lowercase().replaceFirstChar(Char::titlecase), newQuantity.intValue, com.example.recipefinder.data.Unit.valueOf(newUnit.value.uppercase())))}
-            ) {
-                Text("Confirm")
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Primary
-                ),
-            ) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Preview(showBackground = true)
