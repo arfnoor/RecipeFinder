@@ -42,6 +42,20 @@ enum class Unit {
     GRAM, LITER, MILLILITER, CUP, TABLESPOON, TEASPOON, PIECE, WHOLE, DASH
 }
 
+fun abbreviateUnit(unit: Unit): String {
+    return when (unit) {
+        Unit.GRAM -> "g"
+        Unit.LITER -> "L"
+        Unit.MILLILITER -> "ml"
+        Unit.CUP -> " cup"
+        Unit.TABLESPOON -> "tbsp"
+        Unit.TEASPOON -> "tsp"
+        Unit.PIECE -> "pcs"
+        Unit.WHOLE -> " whole"
+        Unit.DASH -> " dash"
+    }
+}
+
 // Find recipes that match tags, style, or ingredients.
 fun findRecipesWithTags(
     recipes: List<Recipe>,
