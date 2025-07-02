@@ -2,18 +2,25 @@ package com.example.recipefinder.ui.createrecipe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -29,9 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
 import com.example.recipefinder.data.Step
@@ -70,7 +79,9 @@ fun CreateRecipeScreen(
         )
         {
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
             )
             {
                 //Title and description
@@ -134,7 +145,7 @@ fun CreateRecipeScreen(
                         .align(Alignment.CenterHorizontally)
                 )
                 Spacer(
-                    modifier = Modifier.fillMaxHeight(0.02f)
+                    modifier = Modifier.fillMaxHeight(0.1f)
                 )
                 // Recipe Description
                 Text(
@@ -160,6 +171,92 @@ fun CreateRecipeScreen(
                         .fillMaxWidth(.92f)
                         .align(Alignment.CenterHorizontally)
                 )
+                Spacer(
+                    modifier = Modifier.fillMaxHeight(0.02f)
+                )
+                Row (
+                    modifier = Modifier.fillMaxWidth(.96f),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth(.45f)
+                            .padding(start = 16.dp)
+
+                    ) {
+                        Text(
+                            text = "Prep Time",
+                            color = Color.White,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                shadow = Shadow(
+                                    color = Secondary,
+                                    offset = Offset(0.0f, 0.0f),
+                                    blurRadius = 15f,
+                                )
+                            ),
+                        )
+                        Row(
+
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = preparationTime.toString(),
+                                onValueChange = { value ->
+                                    value.toIntOrNull()?.let { preparationTime = it }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number
+                                ),
+                                colors = inputFieldColors(),
+                                modifier = Modifier
+                                    .fillMaxWidth(.5f)
+                            )
+                            Text(
+                                text = "minutes",
+                                color = Color.White,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp),
+                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    shadow = Shadow(
+                                        color = Secondary,
+                                        offset = Offset(0.0f, 0.0f),
+                                        blurRadius = 15f,
+                                    )
+                                )
+                            )
+                        }
+
+                    }
+                    Column{
+                        Text(
+                            text = "Recipe Style",
+                            color = Color.White,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                shadow = Shadow(
+                                    color = Secondary,
+                                    offset = Offset(0.0f, 0.0f),
+                                    blurRadius = 15f,
+                                )
+                            ),
+                        )
+                        OutlinedTextField(
+                            value = style,
+                            onValueChange = { style = it },
+                            colors = inputFieldColors(),
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                }
                 Spacer(
                     modifier = Modifier.fillMaxHeight(0.02f)
                 )
@@ -380,6 +477,105 @@ fun CreateRecipeScreen(
                 ) {
                     Text(text = "+", style = MaterialTheme.typography.titleMedium)
                 }
+                Spacer(
+                    modifier = Modifier.fillMaxHeight(0.02f)
+                )
+                Text(
+                    text = "Recipe Tags",
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .align(Alignment.CenterHorizontally),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        shadow = Shadow(
+                            color = Secondary,
+                            offset = Offset(0.0f, 0.0f),
+                            blurRadius = 15f,
+                        )
+                    ),
+                )
+                FlowRow(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                {
+                    tags.forEach {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                .clickable {
+                                    tags = tags - it
+                                }
+                        )
+                        {
+                            Text(
+                                text = it.name.lowercase().replaceFirstChar(Char::titlecase).replace("_", " "),
+                                color = Secondary,
+                                modifier = Modifier
+                                    .padding(8.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+                val showTagMenu = remember { mutableStateOf(false) }
+                Button(
+                    onClick = {
+                        showTagMenu.value = true
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 4.dp, bottom = 4.dp),
+                    shape = RoundedCornerShape(100),
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Secondary,
+                        contentColor = Color.White
+                    ),
+                ) {
+                    Text(text = "+", style = MaterialTheme.typography.titleMedium)
+                }
+                Box (
+                    modifier = Modifier
+                        .fillMaxWidth(.5f)
+
+                        .align(Alignment.CenterHorizontally)
+                        .padding(8.dp)
+                ) {
+                    DropdownMenu(
+                        expanded = showTagMenu.value,
+                        onDismissRequest = { showTagMenu.value = false },
+                        modifier = Modifier
+                            .fillMaxHeight(.3f)
+                            .fillMaxWidth(.4f)
+
+                    ) {
+                        var tagSearch by remember { mutableStateOf("") }
+                        OutlinedTextField(
+                            value = tagSearch,
+                            onValueChange = { tagSearch = it },
+                            placeholder = { Text("Search tags...") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                        Tag.entries
+                            .filter { it.name.contains(tagSearch, ignoreCase = true) }
+                            .forEach { tag ->
+                                DropdownMenuItem(
+                                    text = { Text(tag.name.lowercase().replaceFirstChar(Char::titlecase).replace("_", " "), fontSize = 20.sp) },
+                                    onClick = {
+                                        tags = tags + tag
+                                    }
+                                )
+                            }
+                    }
+                }
+
                 Spacer(
                     modifier = Modifier.fillMaxHeight(0.02f)
                 )

@@ -132,7 +132,7 @@ fun SingleRecipeScreen(
                             )
                             .border(
                                 width = 1.dp,
-                                color = com.example.recipefinder.ui.theme.Secondary,
+                                color = Secondary,
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                             )
                     ) {
@@ -179,7 +179,7 @@ fun SingleRecipeScreen(
                         recipe.steps.forEach { step ->
                             Column {
                                 Text(
-                                    text = "Step ${step.index + 1}: ${step.title}",
+                                    text = "Step ${step.index}: ${step.title}",
                                     modifier = Modifier.padding(8.dp, 8.dp, 8.dp, 4.dp).fillMaxWidth(),
                                     style = Typography.titleLarge
                                 )
