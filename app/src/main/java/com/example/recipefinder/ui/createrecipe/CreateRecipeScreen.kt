@@ -1,5 +1,8 @@
 package com.example.recipefinder.ui.createrecipe
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,14 +44,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
 import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.abbreviateUnit
+import com.example.recipefinder.ui.recipes.SingleRecipeScreen
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
 import com.example.recipefinder.ui.theme.Secondary
+import com.example.recipefinder.ui.theme.Tertiary
 import com.example.recipefinder.ui.theme.inputFieldColors
 
 
@@ -61,11 +67,12 @@ fun CreateRecipeScreen(
     var ingredients by remember { mutableStateOf(listOf<Ingredient>()) }
     var preparationTime by remember { mutableIntStateOf(0) }
     var steps by remember { mutableStateOf(listOf<Step>()) }
-    var imageUrl by remember { mutableStateOf("") }
+    val imageUrl by remember { mutableStateOf("") }
     var style by remember { mutableStateOf("") }
     var tags by remember { mutableStateOf(listOf<Tag>()) }
+    var showPreview by remember { mutableStateOf(false) }
     Box (
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().zIndex(1f)
     )
     {
         Box(
@@ -75,7 +82,6 @@ fun CreateRecipeScreen(
                 .padding(top = 10.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .background(Primary)
-
         )
         {
             Column(
@@ -576,10 +582,25 @@ fun CreateRecipeScreen(
                     }
                 }
 
+                Button(
+                    onClick = { showPreview = true },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Tertiary,
+                        contentColor = Color.White
+                    ),
+                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0 && style.isNotBlank() && tags.isNotEmpty(),
+                ) {
+                    Text("Preview Recipe", color = Secondary)
+                }
+
                 Spacer(
                     modifier = Modifier.fillMaxHeight(0.02f)
                 )
                 Button(
+                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0 && style.isNotBlank() && tags.isNotEmpty(),
                     onClick = {
                         // Handle create recipe action
                         onCreate(
@@ -590,7 +611,7 @@ fun CreateRecipeScreen(
                                 ingredients = ingredients,
                                 steps = steps,
                                 preparationTime = preparationTime,
-                                imageUrl = imageUrl,
+                                imageUrl = "",
                                 style = style,
                                 tags = tags,
                             )
@@ -620,7 +641,53 @@ fun CreateRecipeScreen(
             }
         }
     }
+    AnimatedVisibility(
+        visible = showPreview,
+        enter = slideInVertically(initialOffsetY = { it }),
+        exit = slideOutVertically(targetOffsetY = { it }),
+        modifier = Modifier.zIndex(2f)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .zIndex(2f)
 
+
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .background(Color.White, shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .fillMaxHeight(.9f)
+                    .padding(16.dp)
+            ) {
+                Column {
+                    // Close button
+                    Button(
+                        onClick = { showPreview = false },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text("Close Preview")
+                    }
+                    // Preview content
+                    SingleRecipeScreen(
+                        recipe = Recipe(
+                            id = 0,
+                            title = title,
+                            description = description,
+                            ingredients = ingredients,
+                            steps = steps,
+                            preparationTime = preparationTime,
+                            imageUrl = imageUrl,
+                            style = style,
+                            tags = tags,
+                        )
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)

@@ -39,7 +39,7 @@ fun IngredientInputDialog(
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
+    var quantity by remember { mutableIntStateOf(0) }
     var unit by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
 
@@ -61,10 +61,17 @@ fun IngredientInputDialog(
                     ) {
                     OutlinedTextField(
                         colors = dialogFieldColors(),
-                        value = quantity,
-                        onValueChange = { quantity = it },
+                        value = quantity.toString(),
+                        onValueChange = { value ->
+                            value.toIntOrNull()?.let { quantity = it.toInt() }
+                        },
                         label = { Text("Quantity") },
-                        modifier = Modifier.fillMaxWidth(.4f)
+                        placeholder = { Text(quantity.toString()) },
+                        modifier = Modifier.fillMaxWidth(.4f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        )
                     )
                     var expanded by remember { mutableStateOf(false) }
                     Box(
@@ -115,7 +122,7 @@ fun IngredientInputDialog(
                     contentColor = Color.White
                 ),
                 onClick = {
-                    if (name.isNotBlank() && quantity.isNotBlank() && unit.isNotBlank()) {
+                    if (name.isNotBlank() && quantity > 0 && unit.isNotBlank()) {
                         onConfirm(Ingredient(0, name.lowercase().replaceFirstChar(Char::titlecase), quantity.toInt(), com.example.recipefinder.data.Unit.valueOf(unit.uppercase()), note))
                     }
                 }
