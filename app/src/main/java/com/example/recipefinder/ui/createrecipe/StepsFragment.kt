@@ -63,7 +63,7 @@ fun StepsInputDialog(
                     colors = dialogFieldColors(),
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Note") }
+                    label = { Text("Instructions") }
                 )
 
                 OutlinedTextField(
@@ -76,6 +76,7 @@ fun StepsInputDialog(
         },
         confirmButton = {
             Button(
+                enabled = title.isNotBlank() && description.isNotBlank() && index.toString().isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     contentColor = Color.White
@@ -177,6 +178,7 @@ fun EditStepInputDialog(
         },
         confirmButton = {
             Button(
+                enabled = newTitle.value.isNotBlank() && newDescription.value.isNotBlank() && newIndex.intValue.toString().isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     contentColor = Color.White

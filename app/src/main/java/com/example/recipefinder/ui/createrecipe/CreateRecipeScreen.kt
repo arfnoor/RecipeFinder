@@ -124,11 +124,11 @@ fun CreateRecipeScreen(
                     textAlign = TextAlign.Center
                 )
                 Spacer(
-                    modifier = Modifier.fillMaxHeight(0.03f)
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
                 // Recipe Title
                 Text(
-                    text = "Recipe Title",
+                    text = "Recipe Title*",
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,11 +151,11 @@ fun CreateRecipeScreen(
                         .align(Alignment.CenterHorizontally)
                 )
                 Spacer(
-                    modifier = Modifier.fillMaxHeight(0.1f)
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
                 // Recipe Description
                 Text(
-                    text = "Recipe Description",
+                    text = "Recipe Description*",
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,7 +178,7 @@ fun CreateRecipeScreen(
                         .align(Alignment.CenterHorizontally)
                 )
                 Spacer(
-                    modifier = Modifier.fillMaxHeight(0.02f)
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Row (
                     modifier = Modifier.fillMaxWidth(.96f),
@@ -191,7 +191,7 @@ fun CreateRecipeScreen(
 
                     ) {
                         Text(
-                            text = "Prep Time",
+                            text = "Prep Time*",
                             color = Color.White,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -264,10 +264,10 @@ fun CreateRecipeScreen(
                     }
                 }
                 Spacer(
-                    modifier = Modifier.fillMaxHeight(0.02f)
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
                 Text(
-                    text = "Recipe Ingredients",
+                    text = "Recipe Ingredients*",
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -360,7 +360,7 @@ fun CreateRecipeScreen(
                     modifier = Modifier.fillMaxHeight(0.02f)
                 )
                 Text(
-                    text = "Recipe Steps",
+                    text = "Recipe Steps*",
                     color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -453,7 +453,6 @@ fun CreateRecipeScreen(
                                     modifier = Modifier
                                         .padding(8.dp),
                                     style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Center
                                 )
                                 Text(
                                     text = it.description,
@@ -461,7 +460,6 @@ fun CreateRecipeScreen(
                                     modifier = Modifier
                                         .padding(8.dp),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -591,7 +589,7 @@ fun CreateRecipeScreen(
                         containerColor = Tertiary,
                         contentColor = Color.White
                     ),
-                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0 && style.isNotBlank() && tags.isNotEmpty(),
+                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0
                 ) {
                     Text("Preview Recipe", color = Secondary)
                 }
@@ -600,7 +598,7 @@ fun CreateRecipeScreen(
                     modifier = Modifier.fillMaxHeight(0.02f)
                 )
                 Button(
-                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0 && style.isNotBlank() && tags.isNotEmpty(),
+                    enabled = title.isNotBlank() && description.isNotBlank() && ingredients.isNotEmpty() && steps.isNotEmpty() && preparationTime > 0,
                     onClick = {
                         // Handle create recipe action
                         onCreate(
@@ -666,9 +664,13 @@ fun CreateRecipeScreen(
                     // Close button
                     Button(
                         onClick = { showPreview = false },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Secondary,
+                            contentColor = Color.White
+                        ),
                     ) {
-                        Text("Close Preview")
+                        Text("Close Preview", color = Color.White)
                     }
                     // Preview content
                     SingleRecipeScreen(

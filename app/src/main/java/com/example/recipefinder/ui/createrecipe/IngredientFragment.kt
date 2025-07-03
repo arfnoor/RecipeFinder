@@ -117,6 +117,7 @@ fun IngredientInputDialog(
         },
         confirmButton = {
             Button(
+                enabled = name.isNotBlank() && quantity > 0 && unit.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     contentColor = Color.White
@@ -246,6 +247,7 @@ fun EditIngredientInputDialog(
         },
         confirmButton = {
             Button(
+                enabled = newName.value.isNotBlank() && newQuantity.intValue > 0 && newUnit.value.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     contentColor = Color.White
