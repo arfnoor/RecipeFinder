@@ -66,4 +66,5 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.common.ktx)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.ui.auth)
 }

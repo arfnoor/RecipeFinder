@@ -32,6 +32,8 @@ import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
 import com.example.recipefinder.database.readRecipesFromDatabase
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.IntentSanitizer
 import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
@@ -43,9 +45,15 @@ import com.example.recipefinder.ui.search.SearchScreen
 import com.example.recipefinder.ui.settings.SettingsScreen
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
+import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+
+
 
 fun NavHostController.navigateSingleTopTo(route: String) =
     this.navigate(route) {
@@ -59,12 +67,59 @@ fun NavHostController.navigateSingleTopTo(route: String) =
     }
 
 class MainActivity : ComponentActivity() {
+    // See: https://developer.android.com/training/basics/intents/result
+    private val signInLauncher = registerForActivityResult(
+        FirebaseAuthUIActivityResultContract(),
+    ) { res ->
+        this.onSignInResult(res)
+    }
+
+    // Choose authentication providers
+    val providers = arrayListOf(
+        AuthUI.IdpConfig.EmailBuilder().build(),
+        AuthUI.IdpConfig.GoogleBuilder().build(),
+        AuthUI.IdpConfig.AnonymousBuilder().build()
+    )
+
+    // Create and launch sign-in intent
+    val signInIntent = AuthUI.getInstance()
+        .createSignInIntentBuilder()
+        .setAvailableProviders(providers)
+        .setTheme(R.style.GreenTheme)
+        .setLogo(R.drawable.alfredo)
+        .build()
+
+    private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
+        val response = result.idpResponse
+        if (result.resultCode == RESULT_OK) {
+            // Successfully signed in
+            val user = FirebaseAuth.getInstance().currentUser
+            // ...
+        } else {
+            // Sign in failed. If response is null the user canceled the
+            // sign-in flow using the back button. Otherwise check
+            // response.getError().getErrorCode() and handle the error.
+            // ...
+        }
+    }
+
+    @SuppressLint("UnsafeIntentLaunch")
+    private fun signOutFirebase() {
+        AuthUI.getInstance().signOut(this).addOnCompleteListener {
+            finish()
+            startActivity(intent)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            signInLauncher.launch(signInIntent)
+        }
         val db = Firebase.firestore
         enableEdgeToEdge()
         setContent {
-            RecipeFinderApp(db)
+            RecipeFinderApp(db, { signOutFirebase() })
         }
     }
 }
@@ -115,7 +170,7 @@ fun fetchRecipes(database: FirebaseFirestore) {
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun RecipeFinderApp(database: FirebaseFirestore) {
+fun RecipeFinderApp(database: FirebaseFirestore, signOut: () -> kotlin.Unit) {
     val recipes = recipeViewModel.recipes.collectAsState()
     RecipeFinderTheme {
         // Get the NavController for navigation and the current backstack entry
@@ -187,7 +242,11 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                     })
                 }
                 composable(route = Settings.route) {
-                    SettingsScreen()
+                    SettingsScreen(
+                        signOut = {
+                            signOut()
+                        }
+                    )
                 }
                 composable(route = CreateRecipe.route) {
                     CreateRecipeScreen(
@@ -221,5 +280,5 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
 @Preview(showBackground = true)
 @Composable
 fun RecipeFinderAppPreview() {
-    RecipeFinderApp(database = Firebase.firestore)
+    RecipeFinderApp(database = Firebase.firestore, {})
 }
