@@ -1,11 +1,12 @@
 package com.example.recipefinder.data
 import androidx.lifecycle.ViewModel
-import androidx.compose.runtime.mutableStateListOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class RecipeViewModel : ViewModel() {
-    val recipes = mutableStateListOf<Recipe>()
+    private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
+    val recipes: StateFlow<List<Recipe>> = _recipes
     fun setRecipes(newRecipes: List<Recipe>) {
-        recipes.clear()
-        recipes.addAll(newRecipes)
+        _recipes.value = newRecipes
     }
 }

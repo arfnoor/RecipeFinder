@@ -5,15 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -34,7 +31,7 @@ import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
 import com.example.recipefinder.database.readRecipesFromDatabase
-import com.example.recipefinder.database.updateRecipeInDatabase
+import androidx.compose.runtime.collectAsState
 import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
@@ -97,7 +94,6 @@ val example: MutableList<Recipe>  = mutableListOf(
 )
 
 val recipeViewModel = RecipeViewModel()
-val recipes = recipeViewModel.recipes
 private fun getDatabaseRecipes(foundRecipes: List<Recipe>) {
     recipeViewModel.setRecipes(foundRecipes)
 }
@@ -120,6 +116,7 @@ fun fetchRecipes(database: FirebaseFirestore) {
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun RecipeFinderApp(database: FirebaseFirestore) {
+    val recipes = recipeViewModel.recipes.collectAsState()
     RecipeFinderTheme {
         // Get the NavController for navigation and the current backstack entry
         val navController = rememberNavController()
@@ -135,7 +132,7 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                     onTabSelected = { destination ->
                         fetchRecipes(database)
                         // Navigate to the selected destination
-                        navController.navigateSingleTopTo(destination.route)
+                        navController.navigate(destination.route)
                     },
                     currentScreen = currentScreen
                 )
@@ -172,21 +169,21 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                     )
                 }
                 composable(route = Saved.route) {
-                    SavedScreen(recipes, onRecipeClick = {recipe ->
+                    SavedScreen(recipes.value, onRecipeClick = {recipe ->
                         // Handle recipe click, navigate to a detailed view
-                        navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
+                        navController.navigate("${SingleRecipe.route}/${recipe.id}")
                     })
                 }
                 composable(route = Search.route) {
-                    SearchScreen(recipes, onRecipeClick = {recipe ->
+                    SearchScreen(recipes.value, onRecipeClick = {recipe ->
                     // Handle recipe click, navigate to a detailed view
-                    navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
+                    navController.navigate("${SingleRecipe.route}/${recipe.id}")
                     })
                 }
                 composable(route = Market.route) {
-                    MarketScreen(recipes, onRecipeClick = { recipe ->
+                    MarketScreen(recipes.value, onRecipeClick = { recipe ->
                         // Handle recipe click, navigate to a detailed view
-                        navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
+                        navController.navigate("${SingleRecipe.route}/${recipe.id}")
                     })
                 }
                 composable(route = Settings.route) {
@@ -198,7 +195,7 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                             // Handle recipe creation, e.g., save to database
                             writeRecipeToDatabase(database, recipe)
                             // Navigate to the newly created recipe's detail screen
-                            navController.navigateSingleTopTo("${SingleRecipe.route}/${recipe.id}")
+                            navController.navigate("${SingleRecipe.route}/${recipe.id}")
                         }
 
                     )
@@ -207,11 +204,12 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
                     route = SingleRecipe.routeWithArgs ,
                     arguments = SingleRecipe.arguments
 
-                ) { navBackStackEntry ->
-                    val recipe = navBackStackEntry.arguments?.getInt(SingleRecipe.recipeIdArg)?.let { recipeId ->
-                        recipes.firstOrNull { it.id == recipeId }
-                    } ?: Recipe(0, "Unknown Recipe", "No description available", 0)
-                    SingleRecipeScreen(recipe)
+                ) {
+                    val recipeId = it.arguments?.getInt(SingleRecipe.recipeIdArg)
+                    val recipe = recipes.value.find { it.id == recipeId }
+                    recipe?.let {
+                        SingleRecipeScreen(recipe = it)
+                    }
                 }
             }
         }
