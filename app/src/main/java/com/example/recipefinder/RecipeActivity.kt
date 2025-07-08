@@ -140,7 +140,7 @@ fun RecipeFinderApp(database: FirebaseFirestore) {
             modifier = Modifier.fillMaxSize(),
 
             floatingActionButton = {
-                if(navController.currentDestination?.route != CreateRecipe.route) {
+                if(currentBackstack.value?.destination?.route != CreateRecipe.route) {
                     FloatingActionButton(
                         onClick = { navController.navigateSingleTopTo(CreateRecipe.route) },
                         containerColor = Primary,

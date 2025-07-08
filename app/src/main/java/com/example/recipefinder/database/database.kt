@@ -91,7 +91,8 @@ fun recipeConverter(recipe: Recipe): SafeRecipe
 }
 
 fun writeRecipeToDatabase(db: FirebaseFirestore, recipe: Recipe) {
-    db.collection("RECIPES").document(recipe.id.toString()).set(recipeConverter(recipe))
+    val newDocRef = db.collection("RECIPES").document()
+    newDocRef.set(recipeConverter(recipe.copy(id = newDocRef.id.hashCode())))
         .addOnSuccessListener {
             // Write was successful
             println("Recipe written successfully: ${recipe.title}")
