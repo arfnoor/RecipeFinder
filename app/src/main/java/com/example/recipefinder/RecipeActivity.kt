@@ -38,6 +38,8 @@ import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
 import com.example.recipefinder.ui.home.HomeScreen
+import com.example.recipefinder.ui.login.AccountService
+import com.example.recipefinder.ui.login.AccountServiceImpl
 import com.example.recipefinder.ui.market.MarketScreen
 import com.example.recipefinder.ui.recipes.SingleRecipeScreen
 import com.example.recipefinder.ui.saved.SavedScreen
@@ -49,6 +51,7 @@ import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -67,61 +70,19 @@ fun NavHostController.navigateSingleTopTo(route: String) =
     }
 
 class MainActivity : ComponentActivity() {
-    // See: https://developer.android.com/training/basics/intents/result
-    private val signInLauncher = registerForActivityResult(
-        FirebaseAuthUIActivityResultContract(),
-    ) { res ->
-        this.onSignInResult(res)
-    }
-
-    // Choose authentication providers
-    val providers = arrayListOf(
-        AuthUI.IdpConfig.EmailBuilder().build(),
-        AuthUI.IdpConfig.GoogleBuilder().build(),
-        AuthUI.IdpConfig.AnonymousBuilder().build()
-    )
-
-    // Create and launch sign-in intent
-    val signInIntent = AuthUI.getInstance()
-        .createSignInIntentBuilder()
-        .setAvailableProviders(providers)
-        .setTheme(R.style.GreenTheme)
-        .setLogo(R.drawable.alfredo)
-        .build()
-
-    private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
-        val response = result.idpResponse
-        if (result.resultCode == RESULT_OK) {
-            // Successfully signed in
-            val user = FirebaseAuth.getInstance().currentUser
-            // ...
-        } else {
-            // Sign in failed. If response is null the user canceled the
-            // sign-in flow using the back button. Otherwise check
-            // response.getError().getErrorCode() and handle the error.
-            // ...
-        }
-    }
-
-    @SuppressLint("UnsafeIntentLaunch")
-    private fun signOutFirebase() {
-        AuthUI.getInstance().signOut(this).addOnCompleteListener {
-            finish()
-            startActivity(intent)
-        }
-    }
-
+    private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            signInLauncher.launch(signInIntent)
-        }
+        // Initialize Firebase Auth
+        auth = Firebase.auth
         val db = Firebase.firestore
         enableEdgeToEdge()
         setContent {
-            RecipeFinderApp(db, { signOutFirebase() })
+            RecipeFinderApp(db, auth)
         }
     }
+
+
 }
 
 val tomato = Ingredient(id = 1, name = "Tomato", quantity = 1, unit = Unit.CUP)
@@ -148,6 +109,7 @@ val example: MutableList<Recipe>  = mutableListOf(
 
 )
 
+
 val recipeViewModel = RecipeViewModel()
 private fun getDatabaseRecipes(foundRecipes: List<Recipe>) {
     recipeViewModel.setRecipes(foundRecipes)
@@ -170,7 +132,7 @@ fun fetchRecipes(database: FirebaseFirestore) {
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun RecipeFinderApp(database: FirebaseFirestore, signOut: () -> kotlin.Unit) {
+fun RecipeFinderApp(database: FirebaseFirestore, auth: FirebaseAuth?) {
     val recipes = recipeViewModel.recipes.collectAsState()
     RecipeFinderTheme {
         // Get the NavController for navigation and the current backstack entry
@@ -218,10 +180,17 @@ fun RecipeFinderApp(database: FirebaseFirestore, signOut: () -> kotlin.Unit) {
                 startDestination = Home.route,
                 Modifier.padding(innerPadding)) {
                 composable(route = Home.route) {
-                    HomeScreen(
-                        {navController.navigateSingleTopTo(Market.route)},
-                        {navController.navigateSingleTopTo(Saved.route)}
-                    )
+                    if (auth != null) {
+                        HomeScreen(
+                            auth,
+                            {navController.navigateSingleTopTo(Market.route)},
+                            {navController.navigateSingleTopTo(Saved.route)},
+                            {
+                                navController.popBackStack()
+                                navController.navigateSingleTopTo(Home.route)
+                            }
+                        )
+                    }
                 }
                 composable(route = Saved.route) {
                     SavedScreen(recipes.value, onRecipeClick = {recipe ->
@@ -244,7 +213,9 @@ fun RecipeFinderApp(database: FirebaseFirestore, signOut: () -> kotlin.Unit) {
                 composable(route = Settings.route) {
                     SettingsScreen(
                         signOut = {
-                            signOut()
+                            AccountServiceImpl().signOut()
+                            navController.popBackStack(navController.graph.startDestinationId, false)
+                            navController.navigateSingleTopTo(Home.route)
                         }
                     )
                 }
@@ -280,5 +251,5 @@ fun RecipeFinderApp(database: FirebaseFirestore, signOut: () -> kotlin.Unit) {
 @Preview(showBackground = true)
 @Composable
 fun RecipeFinderAppPreview() {
-    RecipeFinderApp(database = Firebase.firestore, {})
+    RecipeFinderApp(database = Firebase.firestore, null)
 }
