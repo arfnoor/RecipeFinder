@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginViewModel>()) {
     val uiState = remember{viewModel.uiState}
+    val isLoading = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val signUp = remember{mutableStateOf(false)}
     val badSignIn = remember { mutableStateOf(false) }
@@ -73,7 +76,9 @@ fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginV
                     colors = ButtonColors(containerColor = Primary, contentColor = Color.White, disabledContentColor = Color.White, disabledContainerColor = Color.White),
                     onClick = {
                         coroutineScope.launch {
+                            isLoading.value = true
                             val goodSignIn = viewModel.authentication()
+                            isLoading.value = false
                             if (goodSignIn) {
                                 refresh()
                             } else {
@@ -82,8 +87,20 @@ fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginV
                         }
                     }
                 ) {
-                    Text("Login")
+                    if (isLoading.value) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .align(Alignment.CenterVertically)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Login")
+                    }
                 }
+
                 if (badSignIn.value) {
                     Text("Login failed, please verify email and password.", color = Color.Red)
                 }
@@ -137,6 +154,7 @@ fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginV
                     colors = ButtonColors(containerColor = Primary, contentColor = Color.White, disabledContentColor = Color.White, disabledContainerColor = Color.White),
                     onClick = {
                         coroutineScope.launch {
+                            isLoading.value = true
                             val goodSignUp = viewModel.signUp()
                             if (goodSignUp) {
                                 val goodSignIn = viewModel.authentication()
@@ -144,12 +162,24 @@ fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginV
                                     refresh()
                                 }
                             } else {
+                                isLoading.value = false
                                 badSignUp.value = true
                             }
                         }
                     }
                 ) {
-                    Text("Sign Up")
+                    if (isLoading.value) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .align(Alignment.CenterVertically)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Sign Up")
+                    }
                 }
                 if (badSignUp.value) {
                     Text("Sign Up failed, please verify that passwords match.", color = Color.Red)

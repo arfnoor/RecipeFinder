@@ -1,8 +1,10 @@
 package com.example.recipefinder.ui.recipes
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,34 +12,56 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
+import com.example.recipefinder.data.RecipeViewModel
 import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
+import com.example.recipefinder.database.updateSavedRecipesInDatabase
+import com.example.recipefinder.recipeViewModel
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
 import com.example.recipefinder.ui.theme.Secondary
 import com.example.recipefinder.ui.theme.Typography
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SingleRecipeScreen(
     recipe: Recipe,
+    model: RecipeViewModel
 ) {
-
+    val favoritedRecipes = recipeViewModel.savedRecipes.collectAsState()
         Box(
             ){
             // Background image with alpha 0.5
@@ -60,8 +84,8 @@ fun SingleRecipeScreen(
                     val recipeTitle: String = recipe.title
                     Row {
                         Column(
-                            modifier = Modifier.fillMaxWidth(.65f)
-                                .fillMaxHeight(.5f)
+                            modifier = Modifier.fillMaxWidth(.60f)
+                                .fillMaxHeight(.55f)
                         ) {
                             Text(
                                 text = recipeTitle,
@@ -75,6 +99,56 @@ fun SingleRecipeScreen(
                                 color = Color.White,
                                 fontSize = 15.sp
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxHeight()
+                            ) {
+                                Spacer(modifier = Modifier.width(16.dp))
+                                if(favoritedRecipes.value.contains(recipe))
+                                {
+                                    IconButton(
+                                        onClick = {
+                                            model.setSavedRecipes(favoritedRecipes.value.filter { it.id != recipe.id })
+                                            updateSavedRecipesInDatabase(Firebase.firestore, Firebase.auth.currentUser?.uid ?: "", favoritedRecipes.value.filter { it.id != recipe.id })
+                                        },
+
+                                        modifier = Modifier
+                                            .height(48.dp)
+                                            .width(48.dp)
+                                            .background(Color(0xFFFFD700), shape = CircleShape)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Star,
+                                            contentDescription = "Favorite",
+                                            tint = Color.White,
+                                            modifier = Modifier.background(Color(0xFFFFD700)).fillMaxSize(.85f)
+                                        )
+                                    }
+                                }
+                                else
+                                {
+                                    IconButton(
+                                        onClick = {
+                                            model.setSavedRecipes(favoritedRecipes.value + recipe)
+                                            updateSavedRecipesInDatabase(Firebase.firestore, Firebase.auth.currentUser?.uid ?: "", favoritedRecipes.value + recipe)
+                                        },
+                                        modifier = Modifier
+                                            .height(48.dp)
+                                            .width(48.dp)
+                                            .background(Color.White, shape = CircleShape)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Star,
+                                            contentDescription = "Favorite",
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier.background(Color.White).fillMaxSize(.85f)
+                                        )
+                                    }
+                                }
+                            }
+
+
+
                         }
 
                         Image(
@@ -89,7 +163,7 @@ fun SingleRecipeScreen(
                     }
                     Text(
                         text = recipe.description,
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 16.dp).fillMaxWidth(),
                         color = Color.White,
                         style = Typography.bodyLarge,
                     )
@@ -199,6 +273,7 @@ fun SingleRecipeScreen(
 
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun SingleRecipeScreenPreview() {
@@ -212,7 +287,7 @@ fun SingleRecipeScreenPreview() {
         Step(2, "Step 3", "This is the third step of the recipe. It can also be long. For example, you might need to explain how to prepare the ingredients or how to cook them.")
     ))
     RecipeFinderTheme {
-        SingleRecipeScreen(example)
+        SingleRecipeScreen(example, RecipeViewModel())
     }
 
 }

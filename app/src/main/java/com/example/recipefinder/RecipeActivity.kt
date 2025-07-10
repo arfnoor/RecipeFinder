@@ -32,6 +32,7 @@ import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
 import com.example.recipefinder.database.readRecipesFromDatabase
 import androidx.compose.runtime.collectAsState
+import com.example.recipefinder.database.readSavedRecipesFromDatabase
 import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
@@ -105,17 +106,19 @@ val example: MutableList<Recipe>  = mutableListOf(
 
 
 val recipeViewModel = RecipeViewModel()
-private fun getDatabaseRecipes(foundRecipes: List<Recipe>) {
+private fun getDatabaseRecipes(foundRecipes: List<Recipe>, savedRecipes: List<Recipe>) {
     recipeViewModel.setRecipes(foundRecipes)
+    recipeViewModel.setSavedRecipes(savedRecipes)
 }
 
 fun fetchRecipes(database: FirebaseFirestore) {
     // Simulate fetching recipes from a database
     readRecipesFromDatabase(db = database,
         { foundRecipes ->
-            getDatabaseRecipes(
-                foundRecipes
-            )
+            readSavedRecipesFromDatabase(database, foundRecipes, Firebase.auth.currentUser?.uid.toString()) { savedRecipes ->
+                // Update the ViewModel with the fetched recipes
+                getDatabaseRecipes(foundRecipes, savedRecipes)
+            }
         },
         {
             // Handle error case, e.g., show a message to the user
@@ -128,6 +131,7 @@ fun fetchRecipes(database: FirebaseFirestore) {
 @Composable
 fun RecipeFinderApp(database: FirebaseFirestore, auth: FirebaseAuth?) {
     val recipes = recipeViewModel.recipes.collectAsState()
+    val savedRecipes = recipeViewModel.savedRecipes.collectAsState()
     RecipeFinderTheme {
         // Get the NavController for navigation and the current backstack entry
         val navController = rememberNavController()
@@ -192,7 +196,7 @@ fun RecipeFinderApp(database: FirebaseFirestore, auth: FirebaseAuth?) {
                     }
                 }
                 composable(route = Saved.route) {
-                    SavedScreen(recipes.value, onRecipeClick = {recipe ->
+                    SavedScreen(savedRecipes.value, onRecipeClick = {recipe ->
                         // Handle recipe click, navigate to a detailed view
                         navController.navigate("${SingleRecipe.route}/${recipe.id}")
                     })
@@ -237,7 +241,7 @@ fun RecipeFinderApp(database: FirebaseFirestore, auth: FirebaseAuth?) {
                     val recipeId = it.arguments?.getInt(SingleRecipe.recipeIdArg)
                     val recipe = recipes.value.find { it.id == recipeId }
                     recipe?.let {
-                        SingleRecipeScreen(recipe = it)
+                        SingleRecipeScreen(recipe = it, model = recipeViewModel)
                     }
                 }
             }

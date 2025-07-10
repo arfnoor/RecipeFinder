@@ -1,5 +1,6 @@
 package com.example.recipefinder.ui.createrecipe
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.recipefinder.data.Ingredient
 import com.example.recipefinder.data.Recipe
+import com.example.recipefinder.data.RecipeViewModel
 import com.example.recipefinder.data.Step
 import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.abbreviateUnit
@@ -56,8 +58,11 @@ import com.example.recipefinder.ui.theme.RecipeFinderTheme
 import com.example.recipefinder.ui.theme.Secondary
 import com.example.recipefinder.ui.theme.Tertiary
 import com.example.recipefinder.ui.theme.inputFieldColors
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun CreateRecipeScreen(
     onCreate: (Recipe) -> Unit,
@@ -612,6 +617,7 @@ fun CreateRecipeScreen(
                                 imageUrl = "",
                                 style = style,
                                 tags = tags,
+                                owner = Firebase.auth.currentUser?.uid ?: "Anonymous"
                             )
                         )
                     },
@@ -684,7 +690,8 @@ fun CreateRecipeScreen(
                             imageUrl = imageUrl,
                             style = style,
                             tags = tags,
-                        )
+                        ),
+                        model = RecipeViewModel()
                     )
                 }
             }

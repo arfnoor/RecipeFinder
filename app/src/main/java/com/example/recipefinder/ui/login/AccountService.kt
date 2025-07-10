@@ -6,4 +6,5 @@ interface AccountService {
     fun linkAccount(email: String, password: String, onResult: (Throwable?) -> Unit)
     fun signOut()
     fun signUp(email: String, password: String, confirmPassword: String, onResult: (Throwable?) -> Unit)
+    fun editDisplayName(displayName: String, onResult: (Throwable?) -> Unit)
 }

@@ -120,6 +120,38 @@ fun readRecipesFromDatabase(db: FirebaseFirestore, onSuccess: (List<Recipe>) -> 
         }
 }
 
+fun readSavedRecipesFromDatabase(db: FirebaseFirestore, recipes: List<Recipe>, userId: String, onSuccess: (List<Recipe>) -> kotlin.Unit) {
+    db.collection("USERS").document(userId).get()
+        .addOnSuccessListener { document ->
+            if (document.exists()) {
+                val savedRecipeIds = document.get("savedRecipes") as? List<String> ?: emptyList()
+                val savedRecipes = recipes.filter { it.id.toString() in savedRecipeIds }
+                onSuccess(savedRecipes)
+            } else {
+                // User document does not exist, return empty list
+                onSuccess(emptyList())
+            }
+        }
+        .addOnFailureListener { exception ->
+            // Read failed
+            println("Error reading saved recipes: ${exception.message}")
+            onSuccess(emptyList())
+        }
+}
+
+fun updateSavedRecipesInDatabase(db: FirebaseFirestore, userId: String, savedRecipes: List<Recipe>) {
+    val savedRecipeIds = savedRecipes.map { it.id.toString() }
+    db.collection("USERS").document(userId).set(mapOf("savedRecipes" to savedRecipeIds))
+        .addOnSuccessListener {
+            // Update was successful
+            println("Saved recipes updated successfully for user: $userId")
+        }
+        .addOnFailureListener { exception ->
+            // Update failed
+            println("Error updating saved recipes: ${exception.message}")
+        }
+}
+
 fun updateRecipeInDatabase(db: FirebaseFirestore, recipe: Recipe) {
     db.collection("RECIPES").document(recipe.id.toString()).set(recipeConverter(recipe))
 //        .addOnSuccessListener {
