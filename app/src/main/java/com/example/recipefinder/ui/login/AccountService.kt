@@ -5,4 +5,5 @@ interface AccountService {
     fun authenticate(email: String, password: String, onResult: (Throwable?) -> Unit)
     fun linkAccount(email: String, password: String, onResult: (Throwable?) -> Unit)
     fun signOut()
+    fun signUp(email: String, password: String, confirmPassword: String, onResult: (Throwable?) -> Unit)
 }

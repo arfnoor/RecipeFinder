@@ -25,4 +25,13 @@ class AccountServiceImpl : AccountService{
     override fun signOut() {
         Firebase.auth.signOut()
     }
+
+    override fun signUp(email: String, password: String, confirmPassword: String, onResult: (Throwable?) -> Unit) {
+        if (password != confirmPassword) {
+            onResult(IllegalArgumentException("Passwords do not match"))
+            return
+        }
+        Firebase.auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { onResult(it.exception) }
+    }
 }
