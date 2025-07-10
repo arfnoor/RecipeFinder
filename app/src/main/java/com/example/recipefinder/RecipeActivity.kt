@@ -32,13 +32,10 @@ import com.example.recipefinder.data.Tag
 import com.example.recipefinder.data.Unit
 import com.example.recipefinder.database.readRecipesFromDatabase
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.IntentSanitizer
 import com.example.recipefinder.database.writeRecipeToDatabase
 import com.example.recipefinder.ui.components.RecipeFinderTabRow
 import com.example.recipefinder.ui.createrecipe.CreateRecipeScreen
 import com.example.recipefinder.ui.home.HomeScreen
-import com.example.recipefinder.ui.login.AccountService
 import com.example.recipefinder.ui.login.AccountServiceImpl
 import com.example.recipefinder.ui.market.MarketScreen
 import com.example.recipefinder.ui.recipes.SingleRecipeScreen
@@ -47,9 +44,6 @@ import com.example.recipefinder.ui.search.SearchScreen
 import com.example.recipefinder.ui.settings.SettingsScreen
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.RecipeFinderTheme
-import com.firebase.ui.auth.AuthUI
-import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
-import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -144,31 +138,36 @@ fun RecipeFinderApp(database: FirebaseFirestore, auth: FirebaseAuth?) {
         val currentScreen = recipeDestinations.find{it.route == currentDestination?.route} ?: SingleRecipe
         Scaffold(
             bottomBar = {
-                RecipeFinderTabRow(
-                    allScreens = recipeDestinations,
-                    onTabSelected = { destination ->
-                        fetchRecipes(database)
-                        // Navigate to the selected destination
-                        navController.navigate(destination.route)
-                    },
-                    currentScreen = currentScreen
-                )
+                if(auth != null && auth.currentUser != null) {
+                    RecipeFinderTabRow(
+                        allScreens = recipeDestinations,
+                        onTabSelected = { destination ->
+                            fetchRecipes(database)
+                            // Navigate to the selected destination
+                            navController.navigate(destination.route)
+                        },
+                        currentScreen = currentScreen
+                    )
+                }
             },
             modifier = Modifier.fillMaxSize(),
 
             floatingActionButton = {
-                if(currentBackstack.value?.destination?.route != CreateRecipe.route) {
-                    FloatingActionButton(
-                        onClick = { navController.navigateSingleTopTo(CreateRecipe.route) },
-                        containerColor = Primary,
-                        contentColor = Color.White,
-                        modifier = Modifier
-                            .padding(end = (LocalConfiguration.current.screenWidthDp.dp / 2 - 44.dp))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add"
-                        )
+                if(auth != null && auth.currentUser != null)
+                {
+                    if(currentBackstack.value?.destination?.route != CreateRecipe.route) {
+                        FloatingActionButton(
+                            onClick = { navController.navigateSingleTopTo(CreateRecipe.route) },
+                            containerColor = Primary,
+                            contentColor = Color.White,
+                            modifier = Modifier
+                                .padding(end = (LocalConfiguration.current.screenWidthDp.dp / 2 - 44.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add"
+                            )
+                        }
                     }
                 }
             }
