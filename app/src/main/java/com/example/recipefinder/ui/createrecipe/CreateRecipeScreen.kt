@@ -214,9 +214,9 @@ fun CreateRecipeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             OutlinedTextField(
-                                value = preparationTime.toString(),
+                                value = if (preparationTime == 0) "" else preparationTime.toString(),
                                 onValueChange = { value ->
-                                    value.toIntOrNull()?.let { preparationTime = it }
+                                    preparationTime = value.toIntOrNull() ?: 0
                                 },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(

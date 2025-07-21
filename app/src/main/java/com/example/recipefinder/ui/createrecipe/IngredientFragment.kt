@@ -61,12 +61,11 @@ fun IngredientInputDialog(
                     ) {
                     OutlinedTextField(
                         colors = dialogFieldColors(),
-                        value = quantity.toString(),
+                        value = if(quantity == 0) "" else quantity.toString(),
                         onValueChange = { value ->
                             value.toIntOrNull()?.let { quantity = it.toInt() }
                         },
                         label = { Text("Quantity") },
-                        placeholder = { Text(quantity.toString()) },
                         modifier = Modifier.fillMaxWidth(.4f),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(

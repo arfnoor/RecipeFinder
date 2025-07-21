@@ -202,7 +202,7 @@ fun SavedScreen(
                             Row {
                                 tags.forEach { tag ->
                                     Text(
-                                        text = tag.name,
+                                        text = tag.name.replace("_", " "),
                                         color = backgroundColor,
                                         style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier

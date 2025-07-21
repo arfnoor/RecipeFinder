@@ -70,7 +70,8 @@ fun StepsInputDialog(
                     colors = dialogFieldColors(),
                     value = imageUrl,
                     onValueChange = { imageUrl = it },
-                    label = { Text("Image") }
+                    label = { Text("Image") },
+                    placeholder = { Text("No function (Requires Premium Firestore)") },
                 )
             }
         },
