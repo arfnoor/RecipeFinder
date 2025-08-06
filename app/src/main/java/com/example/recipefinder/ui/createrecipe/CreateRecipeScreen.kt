@@ -306,14 +306,29 @@ fun CreateRecipeScreen(
                                 .background(Color.White, shape = RoundedCornerShape(8.dp))
                         )
                         {
-                            Text(
-                                text = "${it.quantity}${abbreviateUnit(it.unit)} ${it.name}",
-                                color = Secondary,
-                                modifier = Modifier
-                                    .padding(8.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
+                            Row(
+                                //verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "${it.quantity}${abbreviateUnit(it.unit)} ${it.name}",
+                                    color = Secondary,
+                                    modifier = Modifier
+                                        .padding(8.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = "✕",
+                                    color = Color.Red,
+                                    modifier = Modifier
+                                        .padding(end = 8.dp, top = 4.dp)
+                                        .clickable {
+                                            ingredients = ingredients - it
+                                        }
+                                )
+                            }
+
+
                         }
 
                     }
@@ -691,7 +706,8 @@ fun CreateRecipeScreen(
                             style = style,
                             tags = tags,
                         ),
-                        model = RecipeViewModel()
+                        model = RecipeViewModel(),
+                        saveable = false
                     )
                 }
             }

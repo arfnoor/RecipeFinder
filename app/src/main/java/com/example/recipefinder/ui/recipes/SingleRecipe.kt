@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +55,8 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun SingleRecipeScreen(
     recipe: Recipe,
-    model: RecipeViewModel
+    model: RecipeViewModel,
+    saveable: Boolean = true
 ) {
     val favoritedRecipes = recipeViewModel.savedRecipes.collectAsState()
         Box(
@@ -87,12 +84,41 @@ fun SingleRecipeScreen(
                             modifier = Modifier.fillMaxWidth(.60f)
                                 .fillMaxHeight(.55f)
                         ) {
-                            Text(
-                                text = recipeTitle,
-                                modifier = Modifier.padding(16.dp, top = 16.dp),
-                                color = Color.White,
-                                style = Typography.headlineMedium,
-                            )
+                            val showPopup = remember { mutableStateOf(false) }
+
+                            Box {
+                                Text(
+                                    text = recipeTitle,
+                                    modifier = Modifier
+                                        .padding(16.dp, top = 16.dp)
+                                        .clickable { showPopup.value = true },
+                                    color = Color.White,
+                                    style = Typography.headlineMedium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                if (showPopup.value) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable { showPopup.value = false },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                                .padding(16.dp)
+                                        ) {
+                                            Text(
+                                                text = recipeTitle,
+                                                color = Primary,
+                                                style = Typography.titleMedium,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                             Text(
                                 text = "Cook Time: ${recipe.preparationTime} minutes",
                                 modifier = Modifier.padding(start = 16.dp),
@@ -104,45 +130,56 @@ fun SingleRecipeScreen(
                                 modifier = Modifier.fillMaxHeight()
                             ) {
                                 Spacer(modifier = Modifier.width(16.dp))
-                                if(favoritedRecipes.value.contains(recipe))
-                                {
-                                    IconButton(
-                                        onClick = {
-                                            model.setSavedRecipes(favoritedRecipes.value.filter { it.id != recipe.id })
-                                            updateSavedRecipesInDatabase(Firebase.firestore, Firebase.auth.currentUser?.uid ?: "", favoritedRecipes.value.filter { it.id != recipe.id })
-                                        },
-
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .width(48.dp)
-                                            .background(Color(0xFFFFD700), shape = CircleShape)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Star,
-                                            contentDescription = "Favorite",
-                                            tint = Color.White,
-                                            modifier = Modifier.background(Color(0xFFFFD700)).fillMaxSize(.85f)
-                                        )
-                                    }
-                                }
-                                else
-                                {
-                                    IconButton(
-                                        onClick = {
-                                            model.setSavedRecipes(favoritedRecipes.value + recipe)
-                                            updateSavedRecipesInDatabase(Firebase.firestore, Firebase.auth.currentUser?.uid ?: "", favoritedRecipes.value + recipe)
-                                        },
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .width(48.dp)
-                                            .background(Color.White, shape = CircleShape)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Star,
-                                            contentDescription = "Favorite",
-                                            tint = Color(0xFFFFD700),
-                                            modifier = Modifier.background(Color.White).fillMaxSize(.85f)
-                                        )
+                                if(saveable) {
+                                    if (favoritedRecipes.value.contains(recipe)) {
+                                        Button(
+                                            onClick = {
+                                                model.setSavedRecipes(favoritedRecipes.value.filter { it.id != recipe.id })
+                                                updateSavedRecipesInDatabase(
+                                                    Firebase.firestore,
+                                                    Firebase.auth.currentUser?.uid ?: "",
+                                                    favoritedRecipes.value.filter { it.id != recipe.id })
+                                            },
+                                            colors = ButtonColors(
+                                                containerColor = Color(0xFFFFD700),
+                                                contentColor = Color(0xFFFFD700),
+                                                disabledContentColor = Color.Gray,
+                                                disabledContainerColor = Color.DarkGray
+                                            ),
+                                            shape = RoundedCornerShape(4.dp),
+                                            modifier = Modifier.width(100.dp)
+                                        ) {
+                                            Text(
+                                                text = "Saved",
+                                                color = Color.White,
+                                                style = Typography.bodyLarge.copy(letterSpacing = 2.sp)
+                                            )
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = {
+                                                model.setSavedRecipes(favoritedRecipes.value + recipe)
+                                                updateSavedRecipesInDatabase(
+                                                    Firebase.firestore,
+                                                    Firebase.auth.currentUser?.uid ?: "",
+                                                    favoritedRecipes.value + recipe
+                                                )
+                                            },
+                                            colors = ButtonColors(
+                                                containerColor = Color.White,
+                                                contentColor = Color.White,
+                                                disabledContentColor = Color.Gray,
+                                                disabledContainerColor = Color.DarkGray
+                                            ),
+                                            shape = RoundedCornerShape(4.dp),
+                                            modifier = Modifier.width(100.dp)
+                                        ) {
+                                            Text(
+                                                text = "Save",
+                                                color = Color(0xFFFFD700),
+                                                style = Typography.bodyLarge.copy(letterSpacing = 2.sp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -180,7 +217,7 @@ fun SingleRecipeScreen(
                                 modifier = Modifier
                                     .background(
                                         color = Color.White,
-                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                                        shape = RoundedCornerShape(
                                             8.dp
                                         )
                                     )
@@ -202,12 +239,12 @@ fun SingleRecipeScreen(
                             .fillMaxWidth()
                             .background(
                                 color = Color.Transparent,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 width = 1.dp,
                                 color = Secondary,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp)
                             )
                     ) {
                         recipe.ingredients.forEach { ingredient ->
@@ -246,7 +283,7 @@ fun SingleRecipeScreen(
                             .fillMaxWidth()
                             .background(
                                 color = Color.Transparent,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp)
                             )
 
                     ) {
@@ -282,9 +319,9 @@ fun SingleRecipeScreenPreview() {
         Ingredient(2, "Ingredient 2", 1, Unit.TABLESPOON),
         Ingredient(3, "Ingredient 3", 3, Unit.TEASPOON)
     ), steps = listOf(
-        Step(0, "This would be step 1", "This is the first step of the recipe. This is long winded to show that it can handle much longer descriptions."),
-        Step(1, "This would be step 2", "This is the second step of the recipe. It can also be long. For example, you might need to explain how to prepare the ingredients or how to cook them."),
-        Step(2, "Step 3", "This is the third step of the recipe. It can also be long. For example, you might need to explain how to prepare the ingredients or how to cook them.")
+        Step(1, "This would be step 1", "This is the first step of the recipe. This is long winded to show that it can handle much longer descriptions."),
+        Step(2, "This would be step 2", "This is the second step of the recipe. It can also be long. For example, you might need to explain how to prepare the ingredients or how to cook them."),
+        Step(3, "Step 3", "This is the third step of the recipe. It can also be long. For example, you might need to explain how to prepare the ingredients or how to cook them.")
     ))
     RecipeFinderTheme {
         SingleRecipeScreen(example, RecipeViewModel())

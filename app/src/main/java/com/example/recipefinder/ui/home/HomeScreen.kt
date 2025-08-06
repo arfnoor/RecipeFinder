@@ -20,9 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -32,7 +29,6 @@ import com.example.recipefinder.ui.theme.RecipeFinderTheme
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.sp
-import com.example.recipefinder.data.Recipe
 import com.example.recipefinder.ui.login.LoginModal
 import com.example.recipefinder.ui.theme.Primary
 import com.example.recipefinder.ui.theme.Secondary
@@ -138,7 +134,7 @@ fun HomeScreen(
                                 )
                             ) {
                                 Text(
-                                    text = "My Recipes",
+                                    text = "Saved Recipes",
                                     fontSize = 20.sp,
                                     modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 8.dp)
                                 )

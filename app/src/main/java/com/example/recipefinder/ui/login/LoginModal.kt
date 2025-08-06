@@ -196,7 +196,7 @@ fun LoginModal(refresh : () -> Unit,viewModel: LoginViewModel = viewModel<LoginV
                         signUp.value = false
                     }
                 ) {
-                    Text("Cancel")
+                    Text("\u2190 Back to Login")
                 }
             }
         }
