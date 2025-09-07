@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.recipefinder"
+    namespace = "com.adamnoorapps.recipefinder"
     compileSdk = 35
 
     defaultConfig {
@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
