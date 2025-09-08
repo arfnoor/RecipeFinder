@@ -1,14 +1,35 @@
 package com.adamnoorapps.recipefinder.ui.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.adamnoorapps.recipefinder.ui.login.AccountServiceImpl
+import com.adamnoorapps.recipefinder.ui.theme.Primary
+import com.adamnoorapps.recipefinder.ui.theme.Secondary
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -17,6 +38,9 @@ fun SettingsScreen(
     signOut : () -> Unit,
 )
 {
+    var showDialog by remember { mutableStateOf(false) }
+    var shownDisplayName by remember { mutableStateOf(Firebase.auth.currentUser?.displayName ?: "Not set") }
+    var displayName by remember { mutableStateOf("") }
     Column (
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -24,14 +48,81 @@ fun SettingsScreen(
         Row (
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Display Name: ${Firebase.auth.currentUser?.displayName ?: "Not set"}")
+            Text("Display Name: $shownDisplayName")
+            Spacer(modifier = Modifier.width(16.dp))
             Button(
-                onClick = { AccountServiceImpl().editDisplayName("Hey", {}) },
+                onClick = { showDialog = true },
+                colors = ButtonColors(
+                    contentColor = Color.White,
+                    containerColor = Primary,
+                    disabledContainerColor = Secondary,
+                    disabledContentColor = Color.White
+                )
             ) {
                 Text("Edit")
             }
+
+            if (showDialog) {
+                Dialog(onDismissRequest = { showDialog = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 4.dp,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .width(IntrinsicSize.Min),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text("Edit Display Name", style = MaterialTheme.typography.titleMedium)
+
+                            OutlinedTextField(
+                                value = displayName,
+                                onValueChange = { displayName = it },
+                                label = { Text("Display Name") },
+                                singleLine = true
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancel")
+                                }
+                                Button(
+                                    onClick = {
+                                        // Call your service here
+                                        AccountServiceImpl().editDisplayName(displayName) {
+                                        }
+                                        showDialog = false
+                                        shownDisplayName = displayName
+                                    },
+                                    colors = ButtonColors(
+                                        contentColor = Color.White,
+                                        containerColor = Primary,
+                                        disabledContainerColor = Secondary,
+                                        disabledContentColor = Color.White
+                                    )
+                                ) {
+                                    Text("Save")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        Button(onClick = { signOut() }) {
+        Button(
+            onClick = { signOut()},
+            colors = ButtonColors(
+                contentColor = Color.White,
+                containerColor = Primary,
+                disabledContainerColor = Secondary,
+                disabledContentColor = Color.White
+            ) ) {
             Text("Sign Out")
         }
     }

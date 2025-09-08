@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,9 @@ import com.adamnoorapps.recipefinder.data.Tag
 import com.adamnoorapps.recipefinder.data.Unit
 import com.adamnoorapps.recipefinder.database.readRecipesFromDatabase
 import androidx.compose.runtime.collectAsState
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.adamnoorapps.recipefinder.database.readSavedRecipesFromDatabase
 import com.adamnoorapps.recipefinder.database.writeRecipeToDatabase
 import com.adamnoorapps.recipefinder.ui.components.RecipeFinderTabRow
@@ -68,6 +72,17 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Hide system nav bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        // Force light theme (for now)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
         // Initialize Firebase Auth
         auth = Firebase.auth
         val db = Firebase.firestore
