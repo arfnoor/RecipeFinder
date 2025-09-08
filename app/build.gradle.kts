@@ -13,8 +13,8 @@ android {
         applicationId = "com.adamnoorapps.recipefinder"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.01"
+        versionCode = 3
+        versionName = "1.02"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
